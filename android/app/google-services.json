@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "761131280753",
+    "project_id": "application-messagerie-test",
+    "storage_bucket": "application-messagerie-test.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:761131280753:android:a5dc86b8dcc3087d30eed0",
+        "android_client_info": {
+          "package_name": "com.example.discord_my_version"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "761131280753-oi2iva9u7cp20lmmav8p3m07hbb8op8l.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCij1CszaOJOccE0fNO4srvxbF0zsCNEM8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "761131280753-oi2iva9u7cp20lmmav8p3m07hbb8op8l.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "761131280753-69sn0eb3g74m42i111idpepmnr3ijohg.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.discordMyVersion"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
