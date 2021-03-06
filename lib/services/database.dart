@@ -50,13 +50,6 @@ class DatabaseService {
     return usersCollection.snapshots().map(_usersListFromSnapshot);
   }
 
-  git init 
-git add README.md 
-git commit -m "first commit" 
-git branch -M main 
-git remote add origin https://github.com/Corentin-zrt/ Appli-Messagerie-FireBase.git
- git push -u origin main
-
   // get user doc stream
   Stream<UserData> get userData {
     return usersCollection.document(uid).snapshots().map(_userDataFromSnapshot);
@@ -136,6 +129,15 @@ git remote add origin https://github.com/Corentin-zrt/ Appli-Messagerie-FireBase
         "description": userSender.description,
         "username": userSender.username
       }).catchError((e) => print(e.toString()));
+      await Firestore.instance
+          .collection(
+              "users/${userSender.uid}/all_friends")
+          .document(userMe.uid)
+          .setData({
+        "uid": userMe.uid,
+        "description": userMe.description,
+        "username": userMe.username
+      }).catchError((e) => print(e.toString()));
 
       // And delete the document
       await Firestore.instance
@@ -153,31 +155,15 @@ git remote add origin https://github.com/Corentin-zrt/ Appli-Messagerie-FireBase
 
   // get friend requests
   Future getAllFriendRequests(UserModel user) async {
-    // See if collection with friend requests exist
-    bool friendRequestsExist;
+    QuerySnapshot resultFriendRequests;
     await Firestore.instance
-        .document(
-            "users/${user.uid}/friend request")
-        .get()
-        .then((doc) {
-      if (doc.exists)
-        friendRequestsExist = true;
-      else
-        friendRequestsExist = false;
-    });
-    //print(friendRequestsExist);
-
-    if (friendRequestsExist) {
-      QuerySnapshot resultFriendRequests;
-      await Firestore.instance
-        .collection("users/${user.uid}/friend request")
-        .getDocuments().then((snapshot) {
-          resultFriendRequests = snapshot;
-        });
-      return resultFriendRequests.documents;
-    } else {
-      return "no friend requests";
-    }
+      .collection("users/${user.uid}/friend request")
+      .getDocuments().then((snapshot) {
+        resultFriendRequests = snapshot;
+      }).catchError((e) {
+        return "no friend requests";
+      });
+    return resultFriendRequests;
   }
 
   // get all friends
@@ -196,20 +182,18 @@ git remote add origin https://github.com/Corentin-zrt/ Appli-Messagerie-FireBase
   // know if a user is your friend
   Future isUserAFriend(UserModel user, UserModel userMe) async {
     // See if collection with friends exist
-    bool friendCollectionExist;
+    bool friendRequestsExist;
     await Firestore.instance
-        .collection(
-            "users/${user.uid}/all_friends")
-        .document("${userMe.uid}")
+        .document(
+            "users/${userMe.uid}/all_friends/${user.uid}")
         .get()
         .then((doc) {
       if (doc.exists)
-        friendCollectionExist = true;
+        friendRequestsExist = true;
       else
-        friendCollectionExist = false;
+        friendRequestsExist = false;
     });
-    //print(friendCollectionExist);
-    return friendCollectionExist;
+    return friendRequestsExist;
   }
 
 }

@@ -20,17 +20,25 @@ class PageFriends extends StatefulWidget {
 class _PageFriendsState extends State<PageFriends> {
   
   List l = [];
-  int nbL;
+  List l2 = [];
 
   Future initial(UserModel userMe) async {
     await DatabaseService().getAllFriends(userMe).then((value) {
 
       if (value != null) {
         setState(() {
-          nbL = value.documents.length;
           l = value.documents;
         });
       }
+
+    });
+    await DatabaseService().getAllFriendRequests(userMe).then((value) {
+
+      if (value != null) {
+        setState(() {
+          l2 = value.documents;
+        });
+      } 
     });
   }
 
@@ -63,21 +71,22 @@ class _PageFriendsState extends State<PageFriends> {
 
                   SizedBox(height: 20),
                   Text("Your friends :", style: TextStyle(color: Colors.black, fontSize: 20),),
+                  SizedBox(height: 20),
 
                   ListView.builder(
                     shrinkWrap: true,
                     itemCount: l.length,
                     itemBuilder: (context, index) {
-                      UserModel user = UserModel(
+                      UserModel user2 = UserModel(
                         username: l[index].data["username"],
                         description: l[index].data["description"],
                         uid: l[index].data["uid"],
                       );
-                      if (l.isEmpty) {
-                        return Text("You have no friends", style: TextStyle(color: Colors.black, fontSize: 15),);
+                      if (l.isEmpty || l == []) {
+                        return Text("You have no friends 😢", style: TextStyle(color: Colors.black, fontSize: 15),);
                       } else {
                         return FriendTile(
-                          user: user,
+                          user: user2,
                           toggleView: widget.toggleView
                         );
                       }
@@ -88,6 +97,28 @@ class _PageFriendsState extends State<PageFriends> {
                   Divider(thickness: 5, color: Colors.black),
                   SizedBox(height: 20),
                   Text("Friend Request :", style: TextStyle(color: Colors.black, fontSize: 20),),
+                  SizedBox(height: 20),
+
+
+                  ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: l2.length,
+                    itemBuilder: (context, index) {
+                      UserModel user2 = UserModel(
+                        username: l2[index].data["username"],
+                        description: l2[index].data["description"],
+                        uid: l2[index].data["uid"],
+                      );
+                      print(l2);
+                      if (l2.isEmpty || l2 == []) {
+                        return Text("You have no friends 😢", style: TextStyle(color: Colors.black, fontSize: 15),);
+                      } else {
+                        return FriendRequestTile(
+                          user_: user2,
+                        );
+                      }
+                    }
+                  ),
 
                 ]
               )

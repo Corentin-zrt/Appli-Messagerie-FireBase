@@ -45,8 +45,10 @@ class _UserTileState extends State<UserTile> {
   Future initial(UserModel userMe) async {
     await DatabaseService().isUserAFriend(widget.user, userMe).then((value) {
       //print(value);
-      isAFriend = value;
-      print(isAFriend);
+      setState(() {
+        isAFriend = value;
+      });
+      //print(isAFriend);
     });
   }
   
@@ -72,18 +74,13 @@ class _UserTileState extends State<UserTile> {
           return Padding(
             padding: EdgeInsets.only(top: 8),
             child: GestureDetector(
-              onTap: () {
-                if (widget.user.username != userData.username) {
-                  widget.toggleView(2, true, widget.user);
-                }
-              },
               child: Card(
                 margin: EdgeInsets.fromLTRB(20, 6, 20, 0),
                 child: ListTile(
                   leading: widget.user.statut == "Offline" ? CircleAvatar(radius: 25, backgroundColor: Colors.red) : CircleAvatar(radius: 25, backgroundColor: Colors.blue),
                   title: Text(widget.user.username),
                   subtitle: Text("${descriptionSize(userData.description)}"),
-                  trailing: widget.user.username == userData.username ? null : iconButtonPerso(isAFriend, userMe)
+                  trailing: widget.user.username == userData.username ? null : IconButtonPerso(isAFriend: isAFriend, userMe: userMe, user: widget.user, snackUserAdd: snackUserAdd, toggleView: widget.toggleView)
                 ),
               ),
             )
@@ -94,41 +91,65 @@ class _UserTileState extends State<UserTile> {
       }
     );
   }
-
-  Widget iconButtonPerso(bool isAFriend, UserModel userMe) {
-    if (isAFriend) {
-      return IconButton(icon: Icon(Icons.message, color: Colors.black,), onPressed: () async {
-        dynamic result = await DatabaseService().sendFriendRequest(widget.user, userMe);
-        if (result == "already sent") {
-          snackUserAdd("You have already send a friend request to this user.");
-        } else {
-          snackUserAdd("A friend request has been sent to this user.");
-        }         
-      });
-    } else if (isAFriend == null) {
-      return IconButton(icon: Icon(Icons.person_add, color: Colors.black,), onPressed: () async {
-        dynamic result = await DatabaseService().sendFriendRequest(widget.user, userMe);
-        //isAlreadyFriend ? Icon(Icons.message, color: Colors.black,) : 
-        if (result == "already sent") {
-          snackUserAdd("You have already send a friend request to this user.");
-        } else {
-          snackUserAdd("A friend request has been sent to this user.");
-        }         
-      });
-    } else {
-      return IconButton(icon: Icon(Icons.person_add, color: Colors.black,), onPressed: () async {
-        dynamic result = await DatabaseService().sendFriendRequest(widget.user, userMe);
-        //isAlreadyFriend ? Icon(Icons.message, color: Colors.black,) : 
-        if (result == "already sent") {
-          snackUserAdd("You have already send a friend request to this user.");
-        } else {
-          snackUserAdd("A friend request has been sent to this user.");
-        }         
-      });
-    }
-  }
 }
 
+class IconButtonPerso extends StatefulWidget {
+  final bool isAFriend;
+  final UserModel userMe, user;
+  final Function snackUserAdd, toggleView;
+
+  IconButtonPerso({ this.isAFriend, this.user, this.userMe, this.snackUserAdd, this.toggleView });
+
+  @override
+  _IconButtonPersoState createState() => _IconButtonPersoState();
+}
+
+class _IconButtonPersoState extends State<IconButtonPerso> {
+
+  Icon icon;
+  Function function;
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.isAFriend) {
+      setState(() {
+        icon = Icon(Icons.message, color: Colors.black,);
+        function = () {
+          widget.toggleView(2, true, widget.user); 
+        };
+      });
+    } else if (widget.isAFriend == null || widget.isAFriend == false) {
+      setState(() {
+        icon = Icon(Icons.person_add, color: Colors.black,);
+        function = () async {
+          dynamic result = await DatabaseService().sendFriendRequest(widget.user, widget.userMe);
+          //isAlreadyFriend ? Icon(Icons.message, color: Colors.black,) : 
+          if (result == "already sent") {
+            widget.snackUserAdd("You have already send a friend request to this user.");
+          } else {
+            widget.snackUserAdd("A friend request has been sent to this user.");
+          }         
+        };
+      });
+    } else {
+      setState(() {
+        icon = Icon(Icons.person_add, color: Colors.black,);
+        function = () async {
+          dynamic result = await DatabaseService().sendFriendRequest(widget.user, widget.userMe);
+          //isAlreadyFriend ? Icon(Icons.message, color: Colors.black,) : 
+          if (result == "already sent") {
+            widget.snackUserAdd("You have already send a friend request to this user.");
+          } else {
+            widget.snackUserAdd("A friend request has been sent to this user.");
+          }         
+        };
+      });
+    }
+
+    return IconButton(icon: icon, onPressed: function);
+  }
+
+}
 
 class FriendTile extends StatefulWidget {
 
@@ -184,12 +205,9 @@ class _FriendTileState extends State<FriendTile> {
               child: Card(
                 margin: EdgeInsets.fromLTRB(20, 6, 20, 0),
                 child: ListTile(
-                  leading: widget.user.statut == "Offline" ? CircleAvatar(radius: 25, backgroundColor: Colors.red) : CircleAvatar(radius: 25, backgroundColor: Colors.blue),
+                  leading: widget.user.statut == "Active" ? CircleAvatar(radius: 25, backgroundColor: Colors.blue) : CircleAvatar(radius: 25, backgroundColor: Colors.red),
                   title: Text(widget.user.username),
                   subtitle: Text("${descriptionSize(userData.description)}"),
-                  trailing: IconButton(icon: Icon(Icons.message, color: Colors.black,), onPressed: () async {
-                    widget.toggleView(2, false, widget.user);
-                  })
                 ),
               ),
             )
@@ -200,4 +218,136 @@ class _FriendTileState extends State<FriendTile> {
       }
     );
   }
+}
+
+
+class FriendRequestTile extends StatefulWidget {
+
+  final UserModel user_;
+
+  FriendRequestTile({ this.user_ });
+
+  @override
+  _FriendRequestTileState createState() => _FriendRequestTileState();
+}
+
+class _FriendRequestTileState extends State<FriendRequestTile> {
+
+  void snackUserAdd(String text) {
+    SnackBar snackBar = new SnackBar( // Faire une notif en bas de l'écran
+      content: Text(text),
+      duration: new Duration(seconds: 2), // Changer le temps d'apparition de la snackbar
+      backgroundColor: Colors.blue,
+    );
+    Scaffold.of(context).showSnackBar(snackBar);
+  }
+
+  String descriptionSize(String description) {
+
+    String phrase = "";
+    if (description.length >= 25) {
+      phrase = "${description.substring(0, 25)}...";
+    } else {
+      phrase = description;
+    }
+
+    return phrase;
+
+  }
+
+  @override
+  Widget build(BuildContext context) {
+
+    final user = Provider.of<User>(context);
+    
+    return StreamBuilder<UserData>(
+      stream: DatabaseService(uid: user.uid).userData,
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          UserData userData = snapshot.data;
+          UserModel userMe = UserModel(
+            username: userData.username,
+            description: userData.description,
+            statut: userData.statut,
+            uid: userData.uid,
+          );
+
+          return Padding(
+            padding: EdgeInsets.only(top: 8),
+            child: GestureDetector(
+              child: Card(
+                child: Container(
+                  margin: EdgeInsets.only(right: 10, left: 10),
+                  padding: EdgeInsets.all(10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      widget.user_.statut == "Active" ? CircleAvatar(radius: 25, backgroundColor: Colors.blue) : CircleAvatar(radius: 25, backgroundColor: Colors.red),
+                      Column(
+                        children: [
+                          Text(widget.user_.username),
+                          Text("${descriptionSize(widget.user_.description)}"),
+                        ]
+                      ),
+                      CustomIconButton(userSender: widget.user_),
+                    ],
+                  ),
+                )
+              ),
+            )
+          );
+        } else {
+          return Loading();
+        }        
+      }
+    );
+  }
+}
+
+class CustomIconButton extends StatefulWidget {
+  final UserModel userSender;
+
+  CustomIconButton({ this.userSender });
+
+  @override
+  _CustomIconButtonState createState() => _CustomIconButtonState();
+}
+
+class _CustomIconButtonState extends State<CustomIconButton> {
+
+  @override
+  Widget build(BuildContext context) {
+
+    final user = Provider.of<User>(context);
+
+    return StreamBuilder<UserData>(
+      stream: DatabaseService(uid: user.uid).userData,
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          UserData userData = snapshot.data;
+          UserModel userMe = UserModel(
+            username: userData.username,
+            description: userData.description,
+            statut: userData.statut,
+            uid: userData.uid,
+          );
+
+          return Row(
+            children: [
+              IconButton(icon: Icon(Icons.check), onPressed: () async {
+                await DatabaseService().accept_refuse_friend_request(userMe, widget.userSender, true);
+              }), 
+              IconButton(icon: Icon(Icons.remove), onPressed: () async {
+                await DatabaseService().accept_refuse_friend_request(userMe, widget.userSender, false);
+              }),
+            ],
+          );
+        } else {
+          return Loading();
+        }   
+        
+      }
+    );
+  }
+
 }
