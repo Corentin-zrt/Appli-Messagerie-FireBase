@@ -1,4 +1,5 @@
 import 'package:discord_my_version/models/user_class.dart';
+import 'package:discord_my_version/models/user_model.dart';
 import 'package:discord_my_version/services/database.dart';
 import 'package:discord_my_version/shared/constants.dart';
 import 'package:discord_my_version/shared/loading.dart';
@@ -68,6 +69,13 @@ class _PageAccountState extends State<PageAccount> {
                     SizedBox(height: 20,),
                     RaisedButton(onPressed: () async {
                         await DatabaseService(uid: user.uid).updateUserData(username ?? userData.username, description ?? userData.description, statut ?? userData.statut, user.uid);
+                        UserModel userMe = UserModel(
+                          uid: user.uid,
+                          description: description ?? userData.description,
+                          statut: statut ?? userData.statut,
+                          username: username ?? userData.username,
+                        );
+                        await DatabaseService().updateUserDataFriend(userMe);
                         widget.toggleView(3, false, null);
                       },
                       child: Text("Save", style: TextStyle(fontSize: 18)),

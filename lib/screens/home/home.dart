@@ -9,6 +9,7 @@ import 'pages/PageAccount.dart';
 import 'pages/PageCarte.dart';
 import 'pages/PageFriends.dart';
 import 'pages/PagePrivateConversation.dart';
+import 'pages/PagePrivateConv.dart';
 import 'pages/PageServer.dart';
 import 'usersList.dart';
 
@@ -26,7 +27,7 @@ class _HomeState extends State<Home> {
 
   PageAccount _account;
   final PageServer _server = new PageServer();
-  PagePrivateConversation _conversation_private;
+  var _conversation_private;//PagePrivateConversation _conversation_private;
   final PageCarte _carte = new PageCarte();
   PageFriends _friends = new PageFriends();
 
@@ -54,7 +55,7 @@ class _HomeState extends State<Home> {
         break;
       case 2:
         setState(() {
-          _conversation_private = new PagePrivateConversation(userReceiver: pageConvPrivateChange,);
+          _conversation_private = new PagePrivateConv(userReceiver: pageConvPrivateChange,);//new PagePrivateConversation(userReceiver: pageConvPrivateChange,);
         });
         return _conversation_private;
         break;
@@ -63,7 +64,7 @@ class _HomeState extends State<Home> {
         break;
       case 4:
         setState(() {
-          _friends = new PageFriends(toggleView: toggleView,);
+          _friends = new PageFriends(toggleView: toggleView);
         });
         return _friends;
         break;

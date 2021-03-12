@@ -55,28 +55,39 @@ class _UsersListState extends State<UsersList> {
           margin: EdgeInsets.only(left: 10, top: 50),
           child: Column(
             children: [
-              Container(
-                padding: EdgeInsets.only(left: 10),
-                color: Colors.black54,
-                child: TextField(
-                  onChanged: (String val) {
-                    setState(() {
-                      usernameSearch = val;
-                    });
-                  },
-                  onSubmitted: (String val) async {
-                    initiateSearch();
-                  },
-                  controller: searchEditingController,
-                  decoration: InputDecoration(
-                    hintText: "search username ...",
-                    hintStyle: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
+              Row(
+                children: [
+                  Container(
+                    width: MediaQuery.of(context).size.width * 0.63,
+                    padding: EdgeInsets.only(left: 10),
+                    color: Colors.black54,
+                    child: TextField(
+                      onChanged: (String val) {
+                        setState(() {
+                          usernameSearch = val;
+                        });
+                      },
+                      onSubmitted: (String val) async {
+                        initiateSearch();
+                      },
+                      controller: searchEditingController,
+                      decoration: InputDecoration(
+                        hintText: "search username ...",
+                        hintStyle: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                        ),
+                        border: InputBorder.none
+                      ),
                     ),
-                    border: InputBorder.none
                   ),
-                ),
+                  IconButton(icon: Icon(Icons.highlight_remove, size: 30,), onPressed: () {
+                    setState(() {
+                      haveUserSearched = false;
+                      searchEditingController.clear();
+                    });
+                  })
+                ],
               ),
               
               Container(

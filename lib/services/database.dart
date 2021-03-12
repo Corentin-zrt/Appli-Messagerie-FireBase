@@ -15,11 +15,51 @@ class DatabaseService {
 
   Future updateUserData(
       String username, String description, String statut, String uid) async {
-    return await usersCollection.document(uid).setData({
+    await usersCollection.document(uid).setData({
       "username": username,
       "description": description,
       "statut": statut,
       "uid": uid,
+    });
+  }
+
+  Future updateUserDataFriend(UserModel userMe) async {
+    QuerySnapshot resultFriends;
+    await Firestore.instance
+        .collection("users/${userMe.uid}/all_friends")
+        .getDocuments()
+        .then((snapshot) {
+      resultFriends = snapshot;
+    });
+
+    QuerySnapshot resultFriendRequests;
+    await Firestore.instance
+        .collection("users/${userMe.uid}/all_friends")
+        .getDocuments()
+        .then((snapshot) {
+      resultFriendRequests = snapshot;
+    });
+
+    resultFriends.documents.forEach((element) async {
+      String uid1 = element.data["uid"];
+
+      await Firestore.instance.collection("users/${uid1}/all_friends").document(userMe.uid).setData({
+        "username": userMe.username,
+        "description": userMe.description,
+        "statut": userMe.statut,
+        "uid": userMe.uid,
+      });
+    });
+
+    resultFriendRequests.documents.forEach((element) async {
+      String uid2 = element.data["uid"];
+
+      await Firestore.instance.collection("users/${uid2}/all_friends").document(userMe.uid).setData({
+        "username": userMe.username,
+        "description": userMe.description,
+        "statut": userMe.statut,
+        "uid": userMe.uid,
+      });
     });
   }
 
@@ -77,8 +117,7 @@ class DatabaseService {
   Future sendFriendRequest(UserModel userReceiver, UserModel userSender) async {
     bool requestAlreadyExist;
     await Firestore.instance
-        .document(
-            "users/${userReceiver.uid}/friend request/${userSender.uid}")
+        .document("users/${userReceiver.uid}/friend_request/${userSender.uid}")
         .get()
         .then((doc) {
       if (doc.exists)
@@ -90,10 +129,14 @@ class DatabaseService {
 
     if (!requestAlreadyExist) {
       print("A friend request has been sent to this user.");
-      return await Firestore.instance.collection("users/${userReceiver.uid}/friend request").document(userSender.uid).setData({
+      await Firestore.instance
+          .collection("users/${userReceiver.uid}/friend_request")
+          .document(userSender.uid)
+          .setData({
         "username": userSender.username,
         "description": userSender.description,
         "uid": userSender.uid,
+        "statut": userSender.statut,
       });
     } else {
       print("You have already send a friend request to this user.");
@@ -103,12 +146,10 @@ class DatabaseService {
 
   // Accept/Refuse a friend request
   Future accept_refuse_friend_request(UserModel userMe, UserModel userSender, bool accept) async {
-
     // See if document of userSender exist
     bool friendRequestExist;
     await Firestore.instance
-        .document(
-            "users/${userMe.uid}/friend request/${userSender.uid}")
+        .document("users/${userMe.uid}/friend_request/${userSender.uid}")
         .get()
         .then((doc) {
       if (doc.exists)
@@ -121,32 +162,36 @@ class DatabaseService {
     if (friendRequestExist && accept) {
       // Paste document
       await Firestore.instance
-          .collection(
-              "users/${userMe.uid}/all_friends")
+          .collection("users/${userMe.uid}/all_friends")
           .document(userSender.uid)
           .setData({
         "uid": userSender.uid,
         "description": userSender.description,
-        "username": userSender.username
-      }).catchError((e) => print(e.toString()));
-      await Firestore.instance
-          .collection(
-              "users/${userSender.uid}/all_friends")
-          .document(userMe.uid)
-          .setData({
-        "uid": userMe.uid,
-        "description": userMe.description,
-        "username": userMe.username
+        "username": userSender.username,
+        "statut": userSender.statut,
       }).catchError((e) => print(e.toString()));
 
       // And delete the document
       await Firestore.instance
-        .document("users/${userMe.uid}/friend request/${userSender.uid}").delete().catchError((e) => print(e.toString()));
+          .document("users/${userMe.uid}/friend_request/${userSender.uid}")
+          .delete()
+          .catchError((e) => print(e.toString()));
 
+      await Firestore.instance
+          .collection("users/${userSender.uid}/all_friends")
+          .document(userMe.uid)
+          .setData({
+        "uid": userMe.uid,
+        "description": userMe.description,
+        "username": userMe.username,
+        "statut": userMe.statut,
+      }).catchError((e) => print(e.toString()));
     } else if (friendRequestExist && !accept) {
       // Delete the document
       await Firestore.instance
-        .document("users/${userMe.uid}/friend request/${userSender.uid}").delete().catchError((e) => print(e.toString()));
+          .document("users/${userMe.uid}/friend_request/${userSender.uid}")
+          .delete()
+          .catchError((e) => print(e.toString()));
       return "friend request refuse";
     } else {
       return "no friend request";
@@ -157,12 +202,13 @@ class DatabaseService {
   Future getAllFriendRequests(UserModel user) async {
     QuerySnapshot resultFriendRequests;
     await Firestore.instance
-      .collection("users/${user.uid}/friend request")
-      .getDocuments().then((snapshot) {
-        resultFriendRequests = snapshot;
-      }).catchError((e) {
-        return "no friend requests";
-      });
+        .collection("users/${user.uid}/friend_request")
+        .getDocuments()
+        .then((snapshot) {
+      resultFriendRequests = snapshot;
+    }).catchError((e) {
+      return "no friend requests";
+    });
     return resultFriendRequests;
   }
 
@@ -170,12 +216,13 @@ class DatabaseService {
   Future getAllFriends(UserModel user) async {
     QuerySnapshot resultFriendRequests;
     await Firestore.instance
-      .collection("users/${user.uid}/all_friends")
-      .getDocuments().then((snapshot) {
-        resultFriendRequests = snapshot;
-      }).catchError((e) {
-        return "no friend";
-      });
+        .collection("users/${user.uid}/all_friends")
+        .getDocuments()
+        .then((snapshot) {
+      resultFriendRequests = snapshot;
+    }).catchError((e) {
+      return "no friend";
+    });
     return resultFriendRequests;
   }
 
@@ -184,8 +231,7 @@ class DatabaseService {
     // See if collection with friends exist
     bool friendRequestsExist;
     await Firestore.instance
-        .document(
-            "users/${userMe.uid}/all_friends/${user.uid}")
+        .document("users/${userMe.uid}/all_friends/${user.uid}")
         .get()
         .then((doc) {
       if (doc.exists)
@@ -194,6 +240,104 @@ class DatabaseService {
         friendRequestsExist = false;
     });
     return friendRequestsExist;
+  }
+
+  //! The messages: 
+
+  Future choiceBetweenChatRoom(UserModel userMe, UserModel userReceiver) async {
+
+    bool existUserMeUserReceiver, existUserReceiverUserMe;
+    try {
+      await Firestore.instance.collection("all_messages")
+        .document("${userMe.uid}_${userReceiver.uid}").get()
+        .then((doc) {
+          if (doc.exists) {
+            existUserMeUserReceiver = true;
+          } else {
+            existUserMeUserReceiver = false;
+          }
+        });
+      
+      await Firestore.instance.collection("all_messages")
+        .document("${userReceiver.uid}_${userMe.uid}").get()
+        .then((doc) {
+          if (doc.exists) {
+            existUserReceiverUserMe = true;
+          } else {
+            existUserReceiverUserMe = false;
+          }
+        });
+
+      if (existUserReceiverUserMe) {
+        return false;
+      } else if (existUserMeUserReceiver) {
+        return true;
+      } else {
+        await Firestore.instance.collection("all_messages")
+          .document("${userMe.uid}_${userReceiver.uid}").setData({
+            "id": "${userMe.uid}_${userReceiver.uid}",
+            "members": [userMe.uid, userReceiver.uid]
+          });
+        return true;
+      }
+
+    } catch (e) {
+      print(e.toString());
+    }
+  }
+
+  Future getAllMessages(UserModel userMe, UserModel userReceiver) async {
+
+    bool switchBCR = await DatabaseService().choiceBetweenChatRoom(userMe, userReceiver);
+    QuerySnapshot resultGetAllMessages;
+
+    if (switchBCR) {
+
+      await Firestore.instance.collection("all_messages/${userMe.uid}_${userReceiver.uid}/chats")
+        .getDocuments().then((value) {
+          resultGetAllMessages = value;
+        });
+
+      return resultGetAllMessages;
+
+    } else {
+
+      await Firestore.instance.collection("all_messages/${userReceiver.uid}_${userMe.uid}/chats")
+        .getDocuments().then((value) {
+          resultGetAllMessages = value;
+        });
+
+      return resultGetAllMessages;
+
+    }
+  }
+
+  Future sendMessage(UserModel userMe, UserModel userReceiver, String message) async {
+
+    bool switchBCR = await DatabaseService().choiceBetweenChatRoom(userMe, userReceiver);
+    DateTime dateNow = DateTime.now();
+    print(dateNow);
+    
+    if (switchBCR) {
+
+      await Firestore.instance.collection("all_messages/${userMe.uid}_${userReceiver.uid}/chats")
+        .document("Message$dateNow").setData({
+          "message": message,
+          "uid" : userMe.uid, 
+          "sendAt": dateNow
+        });
+
+    } else {
+
+      await Firestore.instance.collection("all_messages/${userReceiver.uid}_${userMe.uid}/chats")
+        .document("Message$dateNow").setData({
+          "message": message,
+          "uid" : userMe.uid, 
+          "sendAt": dateNow
+        });
+
+    }
+
   }
 
 }

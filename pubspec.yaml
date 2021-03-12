@@ -31,10 +31,14 @@ dependencies:
   # hidden_drawer_menu: ^2.0.1
   font_awesome_flutter:
   flutter_inner_drawer: ^0.5.7+2
-  firebase_auth: ^0.14.0+5
-  cloud_firestore: ^0.12.9+4
   flutter_spinkit: ^4.1.2
   provider: ^3.1.0
+  intl:
+  #firebase_auth: ^0.14.0+5
+  #cloud_firestore: ^0.12.9+4
+  firebase_auth:
+  cloud_firestore:
+  firebase_messaging:
 
 dev_dependencies:
   flutter_test:

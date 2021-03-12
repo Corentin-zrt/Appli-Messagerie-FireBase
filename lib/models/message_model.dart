@@ -1,7 +1,12 @@
-class Message {
-  String content, author;
-  //DateTime sendAt;
+import 'package:flutter/material.dart';
 
-  //Message({this.author, this.content, this.sendAt});
-  Message({this.author, this.content});
+@immutable
+class Message {
+  final String message;
+  final DateTime createAt;
+
+  const Message({
+    @required this.message,
+    this.createAt,
+  });
 }

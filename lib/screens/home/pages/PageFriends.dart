@@ -86,7 +86,7 @@ class _PageFriendsState extends State<PageFriends> {
                         return Text("You have no friends 😢", style: TextStyle(color: Colors.black, fontSize: 15),);
                       } else {
                         return FriendTile(
-                          user: user2,
+                          user_: user2,
                           toggleView: widget.toggleView
                         );
                       }
@@ -109,9 +109,9 @@ class _PageFriendsState extends State<PageFriends> {
                         description: l2[index].data["description"],
                         uid: l2[index].data["uid"],
                       );
-                      print(l2);
+                      //print(l2);
                       if (l2.isEmpty || l2 == []) {
-                        return Text("You have no friends 😢", style: TextStyle(color: Colors.black, fontSize: 15),);
+                        return Text("You have no friend request 😢", style: TextStyle(color: Colors.black, fontSize: 15),);
                       } else {
                         return FriendRequestTile(
                           user_: user2,

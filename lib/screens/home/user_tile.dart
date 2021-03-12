@@ -80,7 +80,7 @@ class _UserTileState extends State<UserTile> {
                   leading: widget.user.statut == "Offline" ? CircleAvatar(radius: 25, backgroundColor: Colors.red) : CircleAvatar(radius: 25, backgroundColor: Colors.blue),
                   title: Text(widget.user.username),
                   subtitle: Text("${descriptionSize(userData.description)}"),
-                  trailing: widget.user.username == userData.username ? null : IconButtonPerso(isAFriend: isAFriend, userMe: userMe, user: widget.user, snackUserAdd: snackUserAdd, toggleView: widget.toggleView)
+                  trailing: widget.user.username == userData.username ? Text("") : IconButtonPerso(isAFriend: isAFriend, userMe: userMe, user: widget.user, snackUserAdd: snackUserAdd, toggleView: widget.toggleView)
                 ),
               ),
             )
@@ -113,14 +113,14 @@ class _IconButtonPersoState extends State<IconButtonPerso> {
   Widget build(BuildContext context) {
     if (widget.isAFriend) {
       setState(() {
-        icon = Icon(Icons.message, color: Colors.black,);
+        icon = Icon(Icons.message, color: Colors.black, size: 25,);
         function = () {
           widget.toggleView(2, true, widget.user); 
         };
       });
     } else if (widget.isAFriend == null || widget.isAFriend == false) {
       setState(() {
-        icon = Icon(Icons.person_add, color: Colors.black,);
+        icon = Icon(Icons.person_add, color: Colors.black, size: 25,);
         function = () async {
           dynamic result = await DatabaseService().sendFriendRequest(widget.user, widget.userMe);
           //isAlreadyFriend ? Icon(Icons.message, color: Colors.black,) : 
@@ -133,7 +133,7 @@ class _IconButtonPersoState extends State<IconButtonPerso> {
       });
     } else {
       setState(() {
-        icon = Icon(Icons.person_add, color: Colors.black,);
+        icon = Icon(Icons.person_add, color: Colors.black, size: 25,);
         function = () async {
           dynamic result = await DatabaseService().sendFriendRequest(widget.user, widget.userMe);
           //isAlreadyFriend ? Icon(Icons.message, color: Colors.black,) : 
@@ -153,10 +153,10 @@ class _IconButtonPersoState extends State<IconButtonPerso> {
 
 class FriendTile extends StatefulWidget {
 
-  final UserModel user;
+  final UserModel user_;
   final Function toggleView;
 
-  FriendTile({ this.user, this.toggleView });
+  FriendTile({ this.user_, this.toggleView });
   
   @override
   _FriendTileState createState() => _FriendTileState();
@@ -167,8 +167,8 @@ class _FriendTileState extends State<FriendTile> {
   String descriptionSize(String description) {
 
     String phrase = "";
-    if (description.length >= 25) {
-      phrase = "${description.substring(0, 25)}...";
+    if (description.length >= 35) {
+      phrase = "${description.substring(0, 35)}...";
     } else {
       phrase = description;
     }
@@ -198,16 +198,15 @@ class _FriendTileState extends State<FriendTile> {
             padding: EdgeInsets.only(top: 8),
             child: GestureDetector(
               onTap: () {
-                if (widget.user.username != userData.username) {
-                  widget.toggleView(2, true, widget.user);
+                if (widget.user_.username != userData.username) {
+                  widget.toggleView(2, false, widget.user_);
                 }
               },
               child: Card(
                 margin: EdgeInsets.fromLTRB(20, 6, 20, 0),
                 child: ListTile(
-                  leading: widget.user.statut == "Active" ? CircleAvatar(radius: 25, backgroundColor: Colors.blue) : CircleAvatar(radius: 25, backgroundColor: Colors.red),
-                  title: Text(widget.user.username),
-                  subtitle: Text("${descriptionSize(userData.description)}"),
+                  title: Text(widget.user_.username),
+                  subtitle: Text("${descriptionSize(widget.user_.description)}"),
                 ),
               ),
             )
@@ -282,14 +281,13 @@ class _FriendRequestTileState extends State<FriendRequestTile> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      widget.user_.statut == "Active" ? CircleAvatar(radius: 25, backgroundColor: Colors.blue) : CircleAvatar(radius: 25, backgroundColor: Colors.red),
                       Column(
                         children: [
                           Text(widget.user_.username),
                           Text("${descriptionSize(widget.user_.description)}"),
                         ]
                       ),
-                      CustomIconButton(userSender: widget.user_),
+                      CustomIconButton(userSender: widget.user_, userMe: userMe),
                     ],
                   ),
                 )
@@ -305,9 +303,9 @@ class _FriendRequestTileState extends State<FriendRequestTile> {
 }
 
 class CustomIconButton extends StatefulWidget {
-  final UserModel userSender;
+  final UserModel userSender, userMe;
 
-  CustomIconButton({ this.userSender });
+  CustomIconButton({ this.userSender, this.userMe });
 
   @override
   _CustomIconButtonState createState() => _CustomIconButtonState();

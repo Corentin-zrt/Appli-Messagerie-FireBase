@@ -1,4 +1,5 @@
 import 'package:discord_my_version/models/user_class.dart';
+import 'package:discord_my_version/models/user_model.dart';
 import 'package:discord_my_version/services/database.dart';
 import 'package:discord_my_version/shared/loading.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -82,6 +83,13 @@ class _DrawerScreenState extends State<DrawerScreen> {
       builder: (context, snapshot) {
         if (snapshot.hasData) {
           UserData userData = snapshot.data;
+          UserModel userMe = UserModel(
+            username: userData.username,
+            description: userData.description,
+            statut: userData.statut,
+            uid: userData.uid,
+          );  
+          
           return Scaffold(
             body: Container(
               color: Colors.greenAccent,
